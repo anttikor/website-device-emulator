@@ -1,0 +1,4 @@
+/screenshots/
+*.txt
+*.py
+/node_modules/
