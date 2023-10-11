@@ -1,5 +1,3 @@
-
-
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
@@ -22,14 +20,17 @@ if (!fs.existsSync(screenshotsDir)){
   let currentView = 0;
 
   for (const pageName of subpages) {
-    const pageFolder = path.join(screenshotsDir, pageName || 'index');
+    // Korvataan kauttaviivat tavuviivoilla
+    const sanitizedPageName = pageName.replace('/', '-');
+
+    const pageFolder = path.join(screenshotsDir, sanitizedPageName || 'index');
     if (!fs.existsSync(pageFolder)){
         fs.mkdirSync(pageFolder);
     }
 
     for (const deviceName in devices) {
       currentView++;
-      console.log(`Eteneminen: ${currentView}/${totalViews} - Laitteella: ${deviceName}, Sivulla: ${pageName || 'index'}`);
+      console.log(`Eteneminen: ${currentView}/${totalViews} - Laitteella: ${deviceName}, Sivulla: ${sanitizedPageName || 'index'}`);
 
       const device = devices[deviceName];
       const page = await browser.newPage();
