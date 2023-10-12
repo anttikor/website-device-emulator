@@ -1,11 +1,14 @@
+// Load environment variables from .env file
+require('dotenv').config();
 const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 
-// Luettelo alasivuista
-const subpages = ["", "keita-olemme", "palvelut/painotuotteet", "suurkuvat-ja-teippaukset", "myymala-ja-nayttelymateriaalit", "yhteystiedot", "jata-tarjouspyynto", "aineisto-ohjeita"];
+// Read pages and URL from .env file
+const subpages = process.env.SUBPAGES ? process.env.SUBPAGES.split(',') : [];
+const baseURL = process.env.BASE_URL || '';
 
-// Luo yläkansio kuvakaappauksille, jos sitä ei ole olemassa
+// Create a root directory for screenshots if it doesn't exist
 const screenshotsDir = 'screenshots';
 if (!fs.existsSync(screenshotsDir)){
     fs.mkdirSync(screenshotsDir);
@@ -15,12 +18,12 @@ if (!fs.existsSync(screenshotsDir)){
   const browser = await puppeteer.launch();
   const devices = puppeteer.devices;
 
-  // Lasketaan montako näkymää haetaan
+  // Calculate the total number of views to fetch
   const totalViews = subpages.length * Object.keys(devices).length;
   let currentView = 0;
 
   for (const pageName of subpages) {
-    // Korvataan kauttaviivat tavuviivoilla
+    // Replace slashes with hyphens
     const sanitizedPageName = pageName.replace('/', '-');
 
     const pageFolder = path.join(screenshotsDir, sanitizedPageName || 'index');
@@ -30,22 +33,22 @@ if (!fs.existsSync(screenshotsDir)){
 
     for (const deviceName in devices) {
       currentView++;
-      console.log(`Eteneminen: ${currentView}/${totalViews} - Laitteella: ${deviceName}, Sivulla: ${sanitizedPageName || 'index'}`);
+      console.log(`Progress: ${currentView}/${totalViews} - Device: ${deviceName}, Page: ${sanitizedPageName || 'index'}`);
 
       const device = devices[deviceName];
       const page = await browser.newPage();
       await page.emulate(device);
 
-      await page.goto(`https://demo.tuovinen.eu/${pageName}`);
+      await page.goto(`${baseURL}/${pageName}`, { waitUntil: 'load' });  // Wait until the page has loaded
 
-      // Ota kuvakaappaus ja tallenna se
+      // Take a screenshot and save it
       const screenshotPath = path.join(pageFolder, `${deviceName}.png`);
-      await page.screenshot({ path: screenshotPath });
+      await page.screenshot({ path: screenshotPath, fullPage: true });
 
       await page.close();
     }
   }
 
   await browser.close();
-  console.log("Kuvakaappaukset on otettu.");
+  console.log("Screenshots have been taken.");
 })();

@@ -2,3 +2,4 @@
 *.txt
 *.py
 /node_modules/
+.env
