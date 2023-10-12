@@ -19,7 +19,7 @@ SUBPAGES=,about-us,products/services,contact
 BASE_URL=https://example.com
 
 ## Usage
-Run node <script-name>.js to execute the script. Screenshots will be saved in a folder named screenshots.
+Run node app.js to execute the script. Screenshots will be saved in a folder named screenshots.
 
 ### Customization
 You can customize the list of devices and subpages by modifying the .env file.

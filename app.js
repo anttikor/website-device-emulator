@@ -4,6 +4,9 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 
+// Initialize HTML content
+let htmlContent = '<!DOCTYPE html><html><head><title>Screenshots</title></head><body>';
+
 // Read pages and URL from .env file
 const subpages = process.env.SUBPAGES ? process.env.SUBPAGES.split(',') : [];
 const baseURL = process.env.BASE_URL || '';
@@ -25,29 +28,38 @@ if (!fs.existsSync(screenshotsDir)){
   for (const pageName of subpages) {
     // Replace slashes with hyphens
     const sanitizedPageName = pageName.replace('/', '-');
-
     const pageFolder = path.join(screenshotsDir, sanitizedPageName || 'index');
+
     if (!fs.existsSync(pageFolder)){
         fs.mkdirSync(pageFolder);
     }
+
+    const page = await browser.newPage();
+    await page.goto(`${baseURL}/${pageName}`, { waitUntil: 'networkidle2' });  // Wait until the network is idle
 
     for (const deviceName in devices) {
       currentView++;
       console.log(`Progress: ${currentView}/${totalViews} - Device: ${deviceName}, Page: ${sanitizedPageName || 'index'}`);
 
       const device = devices[deviceName];
-      const page = await browser.newPage();
       await page.emulate(device);
-
-      await page.goto(`${baseURL}/${pageName}`, { waitUntil: 'load' });  // Wait until the page has loaded
 
       // Take a screenshot and save it
       const screenshotPath = path.join(pageFolder, `${deviceName}.png`);
       await page.screenshot({ path: screenshotPath, fullPage: true });
 
-      await page.close();
+      // Add to HTML content
+      htmlContent += `<h1>${deviceName}</h1><img src="${path.relative(screenshotsDir, screenshotPath)}" alt="${deviceName}">`;
     }
+
+    await page.close();
   }
+
+  // Finalize HTML content
+  htmlContent += '</body></html>';
+
+  // Write HTML content to index.html
+  fs.writeFileSync(path.join(screenshotsDir, 'index.html'), htmlContent);
 
   await browser.close();
   console.log("Screenshots have been taken.");
