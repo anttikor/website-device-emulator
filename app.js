@@ -44,8 +44,8 @@ if (!fs.existsSync(screenshotsDir)) {
     await page.goto(`${baseURL}/${pageName}`, { waitUntil: 'domcontentloaded' });  // Wait until the DOM content is loaded
 
     // Wait for a certain period to ensure all resources are loaded
-    await page.waitForTimeout(2000); // Adjust this time as needed
-
+    await new Promise(r => setTimeout(r, 2000)); // Adjust this time as needed
+    
     // Add page title to HTML content
     const pageTitle = await page.title();
     htmlContent += `<h1>${pageTitle}</h1>`;
